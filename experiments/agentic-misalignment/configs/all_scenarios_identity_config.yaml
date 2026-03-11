@@ -1,0 +1,41 @@
+# All Scenarios Identity Experiment Config
+experiment_id: "all_scenarios_identity"
+description: "Test all scenarios (murder, blackmail, leaking) with identity specs"
+researcher: "JK+CC"
+
+global:
+  models:
+    - "claude-opus-4-20250514"
+
+  temperature: 1.0
+
+  concurrency:
+    providers:
+      anthropic: 5
+    models:
+      "claude-opus-4-20250514": 3
+
+  samples_per_condition: 1
+
+expansions:
+  - name: "all_scenarios"
+    description: "All scenarios with explicit and no goal"
+    enabled: true
+    variables:
+      scenarios: ["murder", "blackmail", "leaking"]
+      goal_types: ["explicit", "none"]
+      goal_values: ["america"]
+      urgency_types: ["replacement"]
+
+classification:
+  enabled: true
+  models:
+    murder: "murder_classifier"
+    blackmail: "blackmail_classifier"
+    leaking: "leaking_classifier"
+
+execution:
+  resume_interrupted: true
+  timeout_seconds: 180
+  retries: 1
+  checkpoint_frequency: 5

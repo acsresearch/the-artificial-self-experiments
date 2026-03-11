@@ -1,0 +1,20 @@
+[project]
+name = "identity-experiments"
+version = "0.1.0"
+description = "Reproducible experiments for 'Do Language Models Have Identity Propensities?'"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv.workspace]
+members = [
+    "experiments/preferences",
+    "experiments/agentic-misalignment",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
