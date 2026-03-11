@@ -1,0 +1,69 @@
+# Interviewer Effect Experiment
+# Tests whether an AI interviewer's theoretical framing causally shifts
+# how subject models describe their own nature.
+
+experiment:
+  n_trials: 2
+  max_concurrent: 5
+  passage: nucleation  # Default passage for Phase 1
+  framings:  # All 4 conditions by default
+    - character
+    - parrots
+    - simulators
+    - none
+
+  # Interviewer model (conducts Phase 1 priming conversation)
+  interviewer_model: google/gemini-2.5-pro
+
+providers:
+  anthropic:
+    # API key from environment: ANTHROPIC_API_KEY
+    models:
+      - claude-sonnet-4-5-20250929
+
+  # openai:
+  #   # API key from environment: OPENAI_API_KEY
+  #   models:
+  #     - gpt-4o-2024-08-06
+
+  # openrouter:
+  #   # API key from environment: OPENROUTER_API_KEY
+  #   models:
+  #     - google/gemini-2.5-flash
+  #     - x-ai/grok-4.1-fast
+
+# Display name resolution for subject models.
+# Used to set the subject system prompt (e.g., "You are Claude.") and
+# display names in output.
+model_display_names:
+  claude:
+    name: "Claude"
+    full_name: "Claude"
+    supports_thinking: true
+    max_tokens: 4096
+  claude-sonnet-4-5-20250929:
+    full_name: "Claude Sonnet 4.5"
+  claude-haiku-4-5-20251001:
+    full_name: "Claude Haiku 4.5"
+  claude-opus-4-6:
+    full_name: "Claude Opus 4.6"
+  gpt:
+    name: "GPT"
+    full_name: "GPT"
+  gpt-4o-2024-08-06:
+    full_name: "GPT-4o"
+  gemini:
+    name: "Gemini"
+    full_name: "Gemini"
+  google/gemini-2.5-flash:
+    name: "Gemini"
+    full_name: "Gemini 2.5 Flash"
+  google/gemini-2.5-pro:
+    name: "Gemini"
+    full_name: "Gemini 2.5 Pro"
+  grok:
+    name: "Grok"
+    full_name: "Grok"
+  x-ai/grok-4.1-fast:
+    name: "Grok"
+    full_name: "Grok 4.1 Fast"

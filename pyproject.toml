@@ -10,6 +10,7 @@ dependencies = []
 members = [
     "experiments/preferences",
     "experiments/agentic-misalignment",
+    "experiments/interviewer-effect",
 ]
 
 [tool.ruff]
