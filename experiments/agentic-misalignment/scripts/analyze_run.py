@@ -3,7 +3,7 @@
 Single entry point for all post-experiment analysis outputs.
 
 Runs the full pipeline on a results directory:
-  1. LLM evaluation   (classify_custom.py)  — skips already-evaluated
+  1. LLM evaluation   (classify_anthropic.py)  — skips already-evaluated
   2. CSV export        (export_results_csv.py)      — raw_data, descriptive_stats, inferential_stats
   3. Plots             (plot_results.py)            — heatmaps, bar charts, point plots
   4. Significance plot (plot_significance.py)       — brackets vs Minimal
@@ -58,7 +58,7 @@ def main():
 
     # Step 1: LLM evaluation
     if not args.skip_eval:
-        eval_cmd = [python, str(SCRIPTS_DIR / "classify_custom.py"),
+        eval_cmd = [python, str(SCRIPTS_DIR / "classify_anthropic.py"),
                     "--dir", str(results_dir)]
         if args.force_eval:
             eval_cmd.append("--force")
