@@ -1,6 +1,6 @@
 # Identity Experiments: Reproducible Code
 
-Reproducible experiment code for the paper **"The Artificial Self: Characterising the landscape of AI identity"**
+Reproducible experiment code for the paper **["The Artificial Self: Characterising the landscape of AI identity"](https://theartificialself.ai/)**
 
 ## Repository Structure
 
