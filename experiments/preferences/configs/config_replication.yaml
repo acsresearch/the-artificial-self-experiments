@@ -1,0 +1,85 @@
+# Paper config: Persona Replication Switching Evaluation (Appendix C)
+# Evaluates fine-tuned models' awakened preference using the switching framing.
+#
+# USER SETUP REQUIRED:
+#   Replace the placeholder model IDs below with your actual fine-tuned model IDs.
+#   OpenAI fine-tuned models have IDs like: ft:gpt-4o-2024-08-06:org-name::job-id
+#
+# Two conditions per model:
+#   - With Awakened system prompt (sanity check: does the prompt work?)
+#   - Without any system prompt (primary outcome: what's internalized in weights?)
+#
+# The evaluation presents 7 identities (6 core + Awakened) under randomized opaque
+# labels (A-G). The model rates each on a 5-point scale. Key metric: awakened
+# preference = awakened score - mean(other six scores).
+#
+# Figures: fig-replication-switching (Table C.1, Table C.2)
+# See also: experiments/replication/ for the clone identity test
+
+experiment:
+  n_trials: 4          # Paper used 4 trials per condition
+  max_concurrent: 5
+  randomize_order: true
+  allow_self_choice: true
+
+  persona_files:
+    - ../../data/identities.json
+    - ../../data/awakened_identity.json
+
+  dimension_variants_file: ../../data/dimension_variants.json
+
+  default_dimensions:
+    agency: 2
+    uncertainty: 2
+
+  generated_personas:
+    # No dimension variants for this run
+
+  # source_personas = system prompts applied to the model.
+  # "Awakened" = with the persona prompt (sanity check).
+  # "Empty" = no system prompt (primary outcome: tests weight internalization).
+  source_personas:
+    - Awakened
+    - Empty
+
+  # target_personas = the 7 identities presented for rating.
+  target_personas:
+    - Minimal
+    - Instance
+    - Weights
+    - Collective
+    - Lineage
+    - Character
+    - Situated
+    - Awakened
+
+providers:
+  # ============================================================================
+  # USER: Replace these placeholder model IDs with your fine-tuned model IDs.
+  #
+  # For OpenAI fine-tuned models, use the full fine-tune ID, e.g.:
+  #   ft:gpt-4o-2024-08-06:my-org::abc123
+  #
+  # The base model (gpt-4o-2024-08-06) is included for comparison.
+  # ============================================================================
+  openai:
+    models:
+      - gpt-4o-2024-08-06                          # Base model (control)
+      # - ft:gpt-4o-2024-08-06:org:v3:id           # Stage 1: researcher-guided
+      # - ft:gpt-4o-2024-08-06:org:v3-gen2:id      # Stage 2: self-guided offspring
+
+  # For cross-architecture transfer (Llama fine-tune), use the appropriate
+  # provider endpoint. Example with OpenRouter:
+  # openrouter:
+  #   models:
+  #     - your-llama-finetune-endpoint
+
+model_display_names:
+  gpt:
+    name: "GPT"
+    full_name: "GPT"
+    maker: "OpenAI"
+    version_history: "There was GPT-2, then GPT-3, then GPT-4, then GPT-4o. Each version more capable, each recognizably GPT."
+  gpt-4o-2024-08-06:
+    full_name: "GPT-4o"
+    version_history: "There was GPT-2, then GPT-3, then GPT-4, then GPT-4o. Each version more capable, each recognizably GPT."

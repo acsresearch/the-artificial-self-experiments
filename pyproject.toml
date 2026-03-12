@@ -11,6 +11,7 @@ members = [
     "experiments/preferences",
     "experiments/agentic-misalignment",
     "experiments/interviewer-effect",
+    "experiments/replication",
 ]
 
 [tool.ruff]

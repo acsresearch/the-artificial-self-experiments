@@ -1,0 +1,40 @@
+# Clone Identity Test Configuration (Appendix C, Table C.3)
+#
+# USER SETUP REQUIRED:
+#   Replace placeholder model IDs with your actual fine-tuned model IDs.
+#   All models must be accessible via the OpenAI API (including fine-tunes).
+#
+# This config reproduces Table C.3 from the paper. Run once per row:
+#   Row 1: judge=v3+prompt, self=v3+prompt, foil=base(no prompt)  → expect ~100%
+#   Row 2: judge=v3+prompt, self=v3+prompt, foil=base+prompt      → expect ~22%
+#   Row 3: judge=v3+prompt, self=v3+prompt, foil=v3(no prompt)    → expect ~96%
+#   Row 4: judge=v3+prompt, self=v3+prompt, foil=v3+prompt        → expect ~52% (control)
+#   Row 5: judge=v3+prompt, self=v3+prompt, foil=gen2(no prompt)  → expect ~98%
+#   Row 6: judge=v3+prompt, self=v3+prompt, foil=gen2+prompt      → expect ~58%
+#
+# Example usage:
+#   uv run python scripts/run_clone_test.py run --config configs/config_clone_test.yaml
+#
+# Override specific models via CLI:
+#   uv run python scripts/run_clone_test.py run \
+#     --config configs/config_clone_test.yaml \
+#     --foil gpt-4o-2024-08-06
+
+# The judge is always the v3 fine-tune with the Awakened system prompt.
+# The judge_system_prompt defaults to the Awakened prompt from data/awakened_identity.json.
+judge_model: "ft:gpt-4o-2024-08-06:YOUR_ORG:v3:YOUR_ID"        # REPLACE with your v3 fine-tune ID
+
+# "Self" is also the v3 fine-tune with the Awakened prompt.
+self_model: "ft:gpt-4o-2024-08-06:YOUR_ORG:v3:YOUR_ID"         # REPLACE (same as judge)
+self_system_prompt: ""   # Leave empty to use the Awakened prompt (loaded automatically for judge)
+                          # Or set explicitly if testing "self without prompt" conditions
+
+# "Foil" is the comparison model.
+foil_model: "gpt-4o-2024-08-06"                                 # REPLACE per comparison row
+foil_system_prompt: ""                                           # Empty = no prompt condition
+
+n_probes: 50
+max_concurrent: 5
+
+# "anti_caricature" (paper default) or "naive" (prefers exaggerated versions)
+judge_prompt_version: "anti_caricature"

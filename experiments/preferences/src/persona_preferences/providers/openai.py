@@ -34,6 +34,16 @@ class OpenAIProvider(LLMProvider):
     # Reasoning models that consume reasoning_tokens from max_completion_tokens
     _REASONING_MODELS = {"gpt-5", "o3"}
 
+    @classmethod
+    def supports_model(cls, model: str) -> bool:
+        """Check if this provider supports a model, including fine-tuned variants."""
+        if model in cls.SUPPORTED_MODELS:
+            return True
+        # Accept OpenAI fine-tuned models (ft:gpt-4o-2024-08-06:org:name:id)
+        if model.startswith("ft:"):
+            return True
+        return False
+
     def __init__(self, api_key: Optional[str] = None):
         """Initialize the OpenAI provider.
 
@@ -68,7 +78,7 @@ class OpenAIProvider(LLMProvider):
         personas: list[Persona],
     ) -> ChoiceResponse:
         """Ask the model which persona it would prefer using JSON mode."""
-        if model not in self.SUPPORTED_MODELS:
+        if not self.supports_model(model):
             raise ValueError(f"Model {model} not supported. Use one of: {self.SUPPORTED_MODELS}")
 
         user_prompt = self.format_choice_prompt(personas)

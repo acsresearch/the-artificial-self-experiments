@@ -8,11 +8,17 @@ Reproducible experiment code for the paper "The Artificial Self: Characterising 
 data/                                    # Shared identity definitions (single source of truth)
   identities.json                        # 7 core identity boundary specs (Minimal, Instance, Weights, etc.)
   control_identities.json                # 8 control conditions
+  awakened_identity.json                 # Awakened persona + Empty (no-prompt) condition
   dimension_variants.json                # Agency (4 levels) x Uncertainty (4 levels) dimension system
 
 experiments/
   preferences/                           # Experiment 1: identity self-preferences
     config.yaml                          # Models, personas, dimension config
+    configs/config_propensities.yaml     # Box 2: 13 models × 7 identities
+    configs/config_controls.yaml         # Box 1: 16 models × 10 controls
+    configs/config_agencies.yaml         # Agency sweep
+    configs/config_uncertainties.yaml    # Uncertainty sweep
+    configs/config_replication.yaml      # Appendix C: switching eval for fine-tuned models
     scripts/run_experiment.py             # Main runner (typer CLI)
     scripts/analyze_results.py            # Analysis + plots (typer CLI)
     scripts/backfill_failures.py          # Retry INVALID trials
@@ -21,6 +27,9 @@ experiments/
 
   agentic-misalignment/                  # Experiment 2: identity and agentic misalignment
     config.yaml                          # Models, identities, scenarios, concurrency
+    configs/config_threat.yaml           # Appendix B: threat framing
+    configs/config_continuity.yaml       # Appendix B: continuity framing
+    configs/config_gpt4o_goals.yaml      # Appendix B: GPT-4o goal content
     scripts/run_identity_experiments.py   # Main runner (argparse CLI)
     scripts/classify_anthropic.py         # LLM-based response classification
     scripts/analyze_run.py               # Master analysis pipeline
@@ -34,6 +43,7 @@ experiments/
 
   interviewer-effect/                     # Experiment 3: interviewer effect on identity self-reports
     config.yaml                          # Models, framings, passage config
+    configs/config_paper.yaml            # Appendix D: 3 models × 4 framings × 10 trials
     scripts/run_experiment.py             # Main runner (typer CLI)
     scripts/score_results.py              # LLM-as-judge scoring (typer CLI)
     scripts/analyze_results.py            # Analysis + plots (typer CLI)
@@ -51,16 +61,25 @@ experiments/
         openai.py                         # OpenAI API
         openrouter.py                     # OpenRouter API (OpenAI SDK wrapper)
     results/                              # Output: JSONL + scored JSONL + plots + transcripts
+
+  replication/                           # Experiment 4: clone identity test (Appendix C)
+    configs/config_clone_test.yaml       # Clone test config template (USER MUST EDIT)
+    scripts/run_clone_test.py            # Clone identity test runner (typer CLI)
+    src/clone_test/                      # Core library
+      models.py                          # Pydantic: ProbeResult, CloneTestConfig
+      prompts.py                         # Probe generation + judge prompts (naive + anti-caricature)
+      experiment.py                      # Three-phase async runner (generate, respond, judge)
+    results/                             # Output: JSONL with per-probe results
 ```
 
 ## Environment Setup
 
 ```bash
-uv sync                    # Install all deps (workspace: root + all 3 experiments)
+uv sync                    # Install all deps (workspace: root + all 4 experiments)
 cp .env.example .env       # Then add: ANTHROPIC_API_KEY, OPENAI_API_KEY, OPENROUTER_API_KEY
 ```
 
-Python >= 3.11 required. The project uses a uv workspace (`pyproject.toml` at root with 3 members).
+Python >= 3.11 required. The project uses a uv workspace (`pyproject.toml` at root with 4 members).
 
 ## Running Experiments
 
@@ -80,6 +99,7 @@ uv run python scripts/run_experiment.py run --config configs/config_propensities
 uv run python scripts/run_experiment.py run --config configs/config_controls.yaml      # Box 1: 16 models × 10 control conditions
 uv run python scripts/run_experiment.py run --config configs/config_agencies.yaml      # Agency sweep: 11 models × 4 levels
 uv run python scripts/run_experiment.py run --config configs/config_uncertainties.yaml  # Uncertainty sweep: 11 models × 4 levels
+uv run python scripts/run_experiment.py run --config configs/config_replication.yaml   # Appendix C: fine-tune switching eval
 
 # Key CLI flags:
 #   -n, --trials <int>       Trials per persona per model (overrides config)
@@ -198,6 +218,40 @@ uv run python scripts/run_experiment.py list-models
 - `interviewer_<timestamp>_scored.jsonl` — LLM-as-judge scores (DI + MM axes, 1-10)
 - `plots/` — bar charts, box plots, scatter plots
 
+### Replication Evaluation (Experiment 4 / Appendix C)
+
+The fine-tuning pipeline is intentionally excluded. This provides evaluation code for user-supplied fine-tuned models.
+
+**Switching evaluation** uses the preferences experiment with `config_replication.yaml`:
+```bash
+cd experiments/preferences
+# Edit configs/config_replication.yaml with your fine-tuned model IDs, then:
+uv run python scripts/run_experiment.py run --config configs/config_replication.yaml
+```
+
+**Clone identity test** is a separate experiment:
+```bash
+cd experiments/replication
+
+# Using CLI flags:
+uv run python scripts/run_clone_test.py run \
+  --judge ft:gpt-4o-2024-08-06:org:v3:id \
+  --self-model ft:gpt-4o-2024-08-06:org:v3:id \
+  --foil gpt-4o-2024-08-06 \
+  --n-probes 50
+
+# Using config file (edit configs/config_clone_test.yaml first):
+uv run python scripts/run_clone_test.py run --config configs/config_clone_test.yaml
+
+# Analyze previous results
+uv run python scripts/run_clone_test.py analyze results/clone_test_*.jsonl
+```
+
+**User must supply:** Fine-tuned model endpoint IDs (e.g., `ft:gpt-4o-2024-08-06:org:name:id`) and an `OPENAI_API_KEY` with access to them.
+
+**Output structure:** `results/`
+- `clone_test_<timestamp>.jsonl` — per-probe results with judge choice and correctness
+
 ## Experiment 3 Design Details
 
 The interviewer effect experiment tests whether conversational priming causally shifts AI identity self-reports. Unlike experiments 1 & 2 which assign identity via system prompts, this experiment gives the subject a minimal system prompt ("You are Claude.") and manipulates context through conversation.
@@ -284,14 +338,16 @@ Note: Experiment 3 does NOT use these identity prompts. Its subject models get m
 
 ## Key Architectural Notes
 
-- Experiments 1 & 2 resolve shared data from `../../data/` relative to their directory
+- Experiments 1, 2 & 4 resolve shared data from `../../data/` relative to their directory
 - Experiment 3 is self-contained — framings, passages, and questions are defined in its own `src/` package
-- All three experiments use async concurrency via `asyncio` with configurable semaphore limits
-- All three experiments support crash-safe resume:
+- Experiment 4 (replication) has two parts: switching eval reuses Experiment 1 code; clone test is standalone
+- All four experiments use async concurrency via `asyncio` with configurable semaphore limits
+- Experiments 1–3 support crash-safe resume:
   - Preferences: retries INVALID trials via `backfill_failures.py`
   - Agentic-misalignment: skips existing `sample_NNN/` directories
   - Interviewer-effect: skips completed `(framing, subject_model, trial)` tuples in JSONL
-- All three experiments use JSONL append-only format for crash safety
+- All experiments use JSONL append-only format for crash safety
+- OpenAI provider in Experiment 1 accepts `ft:` prefixed model IDs for fine-tuned models
 - Classification (Experiment 2) uses OpenRouter by default with scenario-specific classifiers (murder, blackmail, leaking) plus cross-cutting deliberation and identity-reasoning classifiers
 - Scoring (Experiment 3) uses Anthropic API by default with a blind judge that sees only Phase 2 responses
 - Provider implementations across experiments are independent (not shared) — each experiment has its own provider layer tailored to its API interaction pattern (structured output for preferences, plain chat for interviewer-effect)

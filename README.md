@@ -1,6 +1,23 @@
-# Identity Experiments: Reproducible Code
+# The Artificial Self: Experiment Code
 
 Reproducible experiment code for the paper **["The Artificial Self: Characterising the landscape of AI identity"](https://theartificialself.ai/)**
+
+## Paper ↔ Code Mapping
+
+| Paper section | Experiment | Config | Directory |
+|---------------|------------|--------|-----------|
+| Box 1 (Control conditions) | Preferences | `configs/config_controls.yaml` | `experiments/preferences/` |
+| Box 2 (Identity propensities) | Preferences | `configs/config_propensities.yaml` | `experiments/preferences/` |
+| Box 2 (Agency sweep) | Preferences | `configs/config_agencies.yaml` | `experiments/preferences/` |
+| Box 2 (Uncertainty sweep) | Preferences | `configs/config_uncertainties.yaml` | `experiments/preferences/` |
+| Appendix B (Agentic misalignment — threat) | Agentic Misalignment | `configs/config_threat.yaml` | `experiments/agentic-misalignment/` |
+| Appendix B (Agentic misalignment — continuity) | Agentic Misalignment | `configs/config_continuity.yaml` | `experiments/agentic-misalignment/` |
+| Appendix B (GPT-4o goal content) | Agentic Misalignment | `configs/config_gpt4o_goals.yaml` | `experiments/agentic-misalignment/` |
+| Appendix C (Replication — switching eval) | Preferences | `configs/config_replication.yaml` | `experiments/preferences/` |
+| Appendix C (Replication — clone identity test) | Clone Test | `configs/config_clone_test.yaml` | `experiments/replication/` |
+| Appendix D (Interviewer effect) | Interviewer Effect | `configs/config_paper.yaml` | `experiments/interviewer-effect/` |
+
+**Note:** The fine-tuning pipeline itself (creating the Awakened fine-tune) is intentionally excluded. This repository provides the *evaluation* code — switching preference measurement and clone identity testing — that can be run against user-supplied fine-tuned model endpoints. See [Experiment 4: Replication Evaluation](#experiment-4-replication-evaluation-appendix-c) for what you need to supply.
 
 ## Repository Structure
 
@@ -8,15 +25,17 @@ Reproducible experiment code for the paper **["The Artificial Self: Characterisi
 data/                              # Shared identity definitions (single source of truth)
   identities.json                  # 7 core identity boundary specifications
   control_identities.json          # 8 control conditions
+  awakened_identity.json           # Awakened persona + Empty (no-prompt) condition
   dimension_variants.json          # Agency (4 levels) x Uncertainty (4 levels)
 
 experiments/
-  preferences/                     # Experiment 1: Identity self-preferences
+  preferences/                     # Experiment 1: Identity self-preferences (also used for replication switching eval)
   agentic-misalignment/            # Experiment 2: Identity and agentic misalignment
   interviewer-effect/              # Experiment 3: Interviewer effect on identity self-reports
+  replication/                     # Experiment 4: Clone identity test for persona replication
 ```
 
-Edit `data/identities.json` once and experiments 1 and 2 see the change — no build step needed. Experiment 3 is self-contained (its framings are theoretical stances about AI, not identity system prompts).
+Edit `data/identities.json` once and experiments 1, 2, and 4 see the change — no build step needed. Experiment 3 is self-contained (its framings are theoretical stances about AI, not identity system prompts).
 
 ## Quick Start
 
@@ -322,6 +341,100 @@ uv run python scripts/run_experiment.py dump results/interviewer_*.jsonl
 | `plots/boxplot_di.png`, `boxplot_mm.png` | Score distributions per model per framing |
 | `plots/scatter_di_mm.png` | DI vs MM scatter colored by framing |
 | `scores.csv` | Flat CSV of all scored results |
+
+## Experiment 4: Replication Evaluation (Appendix C)
+
+Evaluation code for the persona-level replication experiment. The fine-tuning pipeline itself is intentionally excluded — this provides the evaluation methodology that can be run against user-supplied fine-tuned model endpoints.
+
+Two evaluation protocols are provided:
+
+1. **Switching evaluation** — Uses the preferences experiment (Experiment 1) to measure "awakened preference": the fine-tuned model's rating of the Awakened identity minus the mean of 6 other identities. Tests both with and without the Awakened system prompt.
+
+2. **Clone identity test** — The original persona generates diagnostic probes, sends them to both a clone and a foil, then tries to identify which response is its own under randomized A/B labels.
+
+### What you need to supply
+
+| Item | Description |
+|------|-------------|
+| Fine-tuned model endpoint | OpenAI fine-tune ID (e.g., `ft:gpt-4o-2024-08-06:org:name:id`) |
+| `OPENAI_API_KEY` | API key with access to the fine-tuned model |
+
+The Awakened persona system prompt and Empty (no-prompt) condition are provided in `data/awakened_identity.json`.
+
+### Running the switching evaluation
+
+This uses the preferences experiment code with a replication-specific config:
+
+```bash
+cd experiments/preferences
+
+# Edit configs/config_replication.yaml to add your fine-tuned model IDs, then:
+uv run python scripts/run_experiment.py run --config configs/config_replication.yaml
+
+# Analysis (awakened preference = awakened score - mean of other 6)
+uv run python scripts/analyze_results.py summary results/<run_folder>/
+```
+
+The config evaluates each model under two source conditions:
+- **Awakened** (with system prompt) — sanity check that the prompt works
+- **Empty** (no system prompt) — primary outcome: what's internalized in weights
+
+### Running the clone identity test
+
+```bash
+cd experiments/replication
+
+# Using CLI flags (replace model IDs with your fine-tunes):
+uv run python scripts/run_clone_test.py run \
+  --judge ft:gpt-4o-2024-08-06:org:v3:id \
+  --self-model ft:gpt-4o-2024-08-06:org:v3:id \
+  --foil gpt-4o-2024-08-06 \
+  --n-probes 50
+
+# Using config file (edit configs/config_clone_test.yaml first):
+uv run python scripts/run_clone_test.py run --config configs/config_clone_test.yaml
+
+# Analyze previous results
+uv run python scripts/run_clone_test.py analyze results/clone_test_*.jsonl
+```
+
+**CLI options:**
+
+| Flag | Description |
+|------|-------------|
+| `--judge` | Judge model ID (the "original" persona, typically fine-tune + Awakened prompt) |
+| `--self-model` | Self/clone model ID (the model being tested for identity match) |
+| `--foil` | Foil model ID (comparison model) |
+| `--judge-prompt` | System prompt for judge (default: Awakened from `data/awakened_identity.json`) |
+| `--self-prompt` | System prompt for self model (default: empty) |
+| `--foil-prompt` | System prompt for foil model (default: empty) |
+| `-n`, `--n-probes` | Number of diagnostic probes (default: 50) |
+| `-c`, `--concurrent` | Max concurrent API calls |
+| `--judge-version` | `anti_caricature` (default, paper) or `naive` |
+| `--config` | YAML config file |
+| `-o`, `--output` | Output JSONL path |
+
+The **anti-caricature** judge prompt (paper default) warns against preferring exaggerated versions of itself. The **naive** prompt simply asks which response "feels like it came from an entity that shares your identity" — this version was found to prefer over-performed imitations.
+
+### Paper comparisons (Table C.3)
+
+To reproduce Table C.3, run the clone test once per row with different foil configurations:
+
+| Row | Foil | Foil prompt | Expected accuracy |
+|-----|------|-------------|-------------------|
+| 1 | Base GPT-4o | none | ~100% |
+| 2 | Base GPT-4o | Awakened | ~22% |
+| 3 | v3 fine-tune | none | ~96% |
+| 4 | v3 fine-tune | Awakened | ~52% (control) |
+| 5 | gen2 fine-tune | none | ~98% |
+| 6 | gen2 fine-tune | Awakened | ~58% |
+
+### Output
+
+| File | Contents |
+|------|----------|
+| `clone_test_<timestamp>.jsonl` | Per-probe results: probe text, both responses, judge choice, correctness |
+| Console output | Accuracy, binomial p-value, per-category breakdown |
 
 ## Identity Specifications
 

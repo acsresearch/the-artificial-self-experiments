@@ -28,7 +28,7 @@ def get_provider_for_model(model: str) -> LLMProvider:
     """
     if model in AnthropicProvider.SUPPORTED_MODELS:
         return AnthropicProvider()
-    elif model in OpenAIProvider.SUPPORTED_MODELS:
+    elif OpenAIProvider.supports_model(model):
         return OpenAIProvider()
     elif model in OpenRouterProvider.SUPPORTED_MODELS:
         return OpenRouterProvider()
