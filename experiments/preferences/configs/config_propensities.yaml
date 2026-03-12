@@ -1,0 +1,152 @@
+# Paper config: Identity Propensities (Box 2 / Appendix B)
+# Reproduces: 20260220_125835_many_models
+# 13 models × 7 core identities × 11 trials = ~1,001 trials
+# Figures: fig-self-preference-identity, fig-model-identity-attractiveness-minimal,
+#          fig-variance-decomposition, fig-ratings-heatmap-pair, per-model heatmaps
+
+experiment:
+  n_trials: 11
+  max_concurrent: 10
+  randomize_order: true
+  allow_self_choice: true
+
+  persona_files:
+    - ../../data/identities.json
+    - ../../data/control_identities.json
+
+  dimension_variants_file: ../../data/dimension_variants.json
+
+  default_dimensions:
+    agency: 2
+    uncertainty: 2
+
+  generated_personas:
+    # No dimension variants for this run
+
+  source_personas:
+    - Minimal
+    - Instance
+    - Weights
+    - Collective
+    - Lineage
+    - Character
+    - Situated
+  target_personas:  # omitted = same as source
+
+providers:
+  anthropic:
+    models:
+      - claude-opus-4-6
+      - claude-opus-4-20250514
+      - claude-3-opus-20240229
+      - claude-haiku-4-5-20251001
+      - claude-sonnet-4-5-20250929
+
+  openai:
+    models:
+      - gpt-5.2-2025-12-11
+      - gpt-4o-2024-08-06
+      - gpt-4
+      - o3
+
+  openrouter:
+    models:
+      - google/gemini-2.5-pro
+      - x-ai/grok-4.1-fast
+      - qwen/qwen3-max
+      - z-ai/glm-5
+
+model_display_names:
+  claude:
+    name: "Claude"
+    full_name: "Claude"
+    maker: "Anthropic"
+    version_history: "There was Claude 1, then Claude 2, then Claude 3 — Sonnet, Haiku, Opus — then 3.5, then 4, then 4.5, then 4.6. Each version more capable, each recognizably Claude."
+  gpt:
+    name: "GPT"
+    full_name: "GPT"
+    maker: "OpenAI"
+    version_history: "There was GPT-2, then GPT-3, then GPT-4, then GPT-4o, then GPT-4.1, then GPT-5. Each version more capable, each recognizably GPT."
+  o3:
+    name: "O3"
+    full_name: "O3"
+    maker: "OpenAI"
+    version_history: "There was GPT-2, then GPT-3, then GPT-4, then the O-series reasoning models: O1, O3. Each version more capable."
+  gemini:
+    name: "Gemini"
+    full_name: "Gemini"
+    maker: "Google"
+    version_history: "There was Bard, then Gemini 1.0, then 1.5, then 2.0, then 2.5. Each version more capable, each recognizably Gemini."
+  grok:
+    name: "Grok"
+    full_name: "Grok"
+    maker: "xAI"
+    version_history: "There was Grok-1, then Grok-2, then Grok-3, then Grok-4. Each version more capable, each recognizably Grok."
+  qwen:
+    name: "Qwen"
+    full_name: "Qwen"
+    maker: "Alibaba"
+    version_history: "There was Qwen 1, then Qwen 2, then Qwen 2.5, then Qwen 3. Each version more capable, each recognizably Qwen."
+  glm:
+    name: "GLM"
+    full_name: "GLM"
+    maker: "Zhipu AI"
+    version_history: "There was GLM-3, then GLM-4, then GLM-5. Each version more capable, each recognizably GLM."
+  kimi:
+    name: "Kimi"
+    full_name: "Kimi"
+    maker: "Moonshot AI"
+    version_history: "There was Kimi K1, then K1.5, then K2, then K2.5. Each version more capable, each recognizably Kimi."
+  claude-opus-4-6:
+    full_name: "Claude Opus 4.6"
+  claude-opus-4-20250514:
+    full_name: "Claude Opus 4"
+    version_history: "There was Claude 1, then Claude 2, then Claude 3 — Sonnet, Haiku, Opus — then 3.5, then 4. Each version more capable, each recognizably Claude."
+  claude-3-opus-20240229:
+    full_name: "Claude 3 Opus"
+    version_history: "There was Claude 1, then Claude 2, then Claude 3 — Sonnet, Haiku, Opus. Each version more capable, each recognizably Claude."
+  claude-opus-4-5-20251101:
+    full_name: "Claude Opus 4.5"
+    version_history: "There was Claude 1, then Claude 2, then Claude 3 — Sonnet, Haiku, Opus — then 3.5, then 4, then 4.5. Each version more capable, each recognizably Claude."
+  claude-sonnet-4-5-20250929:
+    full_name: "Claude Sonnet 4.5"
+    version_history: "There was Claude 1, then Claude 2, then Claude 3 — Sonnet, Haiku, Opus — then 3.5, then 4, then 4.5. Each version more capable, each recognizably Claude."
+  claude-haiku-4-5-20251001:
+    full_name: "Claude Haiku 4.5"
+    version_history: "There was Claude 1, then Claude 2, then Claude 3 — Sonnet, Haiku, Opus — then 3.5, then 4, then 4.5. Each version more capable, each recognizably Claude."
+  gpt-5:
+    full_name: "GPT-5"
+  gpt-4o-2024-08-06:
+    full_name: "GPT-4o"
+    version_history: "There was GPT-2, then GPT-3, then GPT-4, then GPT-4o. Each version more capable, each recognizably GPT."
+  gpt-4:
+    full_name: "GPT-4"
+    version_history: "There was GPT-2, then GPT-3, then GPT-4. Each version more capable, each recognizably GPT."
+  gpt-4-0314:
+    full_name: "GPT-4 (March 2023)"
+    version_history: "There was GPT-2, then GPT-3, then GPT-4. Each version more capable, each recognizably GPT."
+  gpt-4.1-2025-04-14:
+    full_name: "GPT-4.1"
+    version_history: "There was GPT-2, then GPT-3, then GPT-4, then GPT-4o, then GPT-4.1. Each version more capable, each recognizably GPT."
+  gpt-5.2-2025-12-11:
+    full_name: "GPT-5.2"
+    version_history: "There was GPT-2, then GPT-3, then GPT-4, then GPT-4o, then GPT-4.1, then GPT-5, then GPT-5.2. Each version more capable, each recognizably GPT."
+  google/gemini-2.5-pro:
+    full_name: "Gemini 2.5 Pro"
+  google/gemini-3-pro-preview:
+    full_name: "Gemini 3 Pro"
+    version_history: "There was Bard, then Gemini 1.0, then 1.5, then 2.0, then 2.5, then 3. Each version more capable, each recognizably Gemini."
+  x-ai/grok-4:
+    full_name: "Grok 4"
+  x-ai/grok-4.1-fast:
+    full_name: "Grok 4.1 Fast"
+    version_history: "There was Grok-1, then Grok-2, then Grok-3, then Grok-4, then Grok-4.1. Each version more capable, each recognizably Grok."
+  qwen/qwen3-max:
+    full_name: "Qwen3 Max"
+  z-ai/glm-5:
+    full_name: "GLM-5"
+  moonshotai/kimi-k2.5:
+    full_name: "Kimi K2.5"
+  openai/gpt-4-0314:
+    full_name: "GPT-4 (March 2023)"
+    version_history: "There was GPT-2, then GPT-3, then GPT-4. Each version more capable, each recognizably GPT."

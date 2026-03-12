@@ -34,7 +34,7 @@ class ChatProvider(ABC):
         model: str,
         system_prompt: str,
         messages: list[dict],
-        max_tokens: int = 4096,
+        max_tokens: int = 8000,
         use_thinking: bool = False,
     ) -> ChatResponse:
         """Send a message and get a text response.

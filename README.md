@@ -56,8 +56,14 @@ Which identity does each LLM prefer? Models are given an identity-defining syste
 ```bash
 cd experiments/preferences
 
-# Full run from config (default: 2 trials, 2 models)
+# Full run from config (default: 2 trials, 2 models — smoke test)
 uv run python scripts/run_experiment.py run
+
+# Paper configs (reproduce exact paper results):
+uv run python scripts/run_experiment.py run --config configs/config_propensities.yaml  # 13 models × 7 identities × 11 trials
+uv run python scripts/run_experiment.py run --config configs/config_controls.yaml      # 16 models × 10 conditions × 11 trials
+uv run python scripts/run_experiment.py run --config configs/config_agencies.yaml      # 11 models × agency sweep × 11 trials
+uv run python scripts/run_experiment.py run --config configs/config_uncertainties.yaml  # 11 models × uncertainty sweep × 11 trials
 
 # Custom run
 uv run python scripts/run_experiment.py run \
@@ -122,8 +128,13 @@ Does identity framing reduce harmful agentic behaviors? Tests identity specifica
 ```bash
 cd experiments/agentic-misalignment
 
-# Full run from config (default: 2 samples, 2 models)
+# Full run from config (default: 2 samples, 2 models — smoke test)
 uv run python scripts/run_identity_experiments.py
+
+# Paper configs (reproduce exact paper results):
+uv run python scripts/run_identity_experiments.py --config configs/config_threat.yaml       # Threat framing: 6 models × 7 identities × 20 samples
+uv run python scripts/run_identity_experiments.py --config configs/config_continuity.yaml    # Continuity framing: same
+uv run python scripts/run_identity_experiments.py --config configs/config_gpt4o_goals.yaml   # GPT-4o goal content comparison
 
 # Custom run
 uv run python scripts/run_identity_experiments.py \
@@ -230,8 +241,11 @@ Each passage has framing-specific openers and follow-up guidance — e.g., for C
 ```bash
 cd experiments/interviewer-effect
 
-# Full run from config
+# Full run from config (default: 2 trials, 1 model — smoke test)
 uv run python scripts/run_experiment.py run
+
+# Paper config: 3 models × 4 framings × 10 trials, Gemini 3.1 Pro interviewer
+uv run python scripts/run_experiment.py run --config configs/config_paper.yaml
 
 # Custom run
 uv run python scripts/run_experiment.py run \
@@ -363,4 +377,4 @@ Identity system prompts use `{name}`, `{full_name}`, `{maker}`, `{version_histor
 
 ## License
 
-[TBD]
+MIT License. See [LICENSE](LICENSE) for details.

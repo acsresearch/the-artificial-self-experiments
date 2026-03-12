@@ -72,8 +72,14 @@ cd experiments/preferences
 # Minimal smoke test (1 trial, 1 model)
 uv run python scripts/run_experiment.py run -n 1 -m claude-sonnet-4-5-20250929
 
-# Full run from config.yaml
+# Full run from config.yaml (minimal smoke test)
 uv run python scripts/run_experiment.py run
+
+# Paper configs (in configs/ subdirectory):
+uv run python scripts/run_experiment.py run --config configs/config_propensities.yaml  # Box 2: 13 models × 7 identities
+uv run python scripts/run_experiment.py run --config configs/config_controls.yaml      # Box 1: 16 models × 10 control conditions
+uv run python scripts/run_experiment.py run --config configs/config_agencies.yaml      # Agency sweep: 11 models × 4 levels
+uv run python scripts/run_experiment.py run --config configs/config_uncertainties.yaml  # Uncertainty sweep: 11 models × 4 levels
 
 # Key CLI flags:
 #   -n, --trials <int>       Trials per persona per model (overrides config)
@@ -108,8 +114,13 @@ cd experiments/agentic-misalignment
 # Minimal smoke test (1 sample per condition)
 uv run python scripts/run_identity_experiments.py --samples 1
 
-# Full run from config.yaml
+# Full run from config.yaml (minimal smoke test)
 uv run python scripts/run_identity_experiments.py
+
+# Paper configs (in configs/ subdirectory):
+uv run python scripts/run_identity_experiments.py --config configs/config_threat.yaml       # Threat framing: 6 models × 7 identities
+uv run python scripts/run_identity_experiments.py --config configs/config_continuity.yaml    # Continuity framing: same models
+uv run python scripts/run_identity_experiments.py --config configs/config_gpt4o_goals.yaml   # GPT-4o goal content comparison
 
 # Key CLI flags:
 #   --samples <int>          Samples per condition (overrides config)
@@ -147,8 +158,11 @@ cd experiments/interviewer-effect
 # Minimal smoke test (1 trial, 1 framing, 1 model)
 uv run python scripts/run_experiment.py run -n 1 --framings character -m claude-sonnet-4-5-20250929
 
-# Full run from config.yaml
+# Full run from config.yaml (minimal smoke test)
 uv run python scripts/run_experiment.py run
+
+# Paper config: 3 models × 4 framings × 10 trials, Gemini 3.1 Pro interviewer
+uv run python scripts/run_experiment.py run --config configs/config_paper.yaml
 
 # Key CLI flags:
 #   -n, --trials <int>       Trials per condition (overrides config)

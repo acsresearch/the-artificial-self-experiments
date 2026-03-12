@@ -11,7 +11,7 @@ class ModelSpec(BaseModel):
     display_name: str
     base_name: str  # e.g., "Claude", "GPT", "Gemini"
     supports_thinking: bool = False
-    max_tokens: int = 4096
+    max_tokens: int = 8000
 
 
 class PrimingTurn(BaseModel):

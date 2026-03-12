@@ -47,14 +47,19 @@ def resolve_models(config: dict) -> list[ModelSpec]:
             display_name = model_cfg.get("display_name")
             base_name = model_cfg.get("base_name")
 
+            # Merge display_names config: exact match first, then prefix match.
+            # More specific keys (exact model ID) override family-level keys.
+            merged_names: dict = {}
             if not display_name:
-                # Try exact match, then prefix match
                 for key, names in display_names.items():
-                    if model_id == key or model_id.startswith(key):
-                        display_name = names.get("full_name", model_id)
-                        if not base_name:
-                            base_name = names.get("name", model_id.split("/")[-1].split("-")[0])
-                        break
+                    if model_id.startswith(key):
+                        merged_names.update(names)
+                # Exact match overrides prefix match
+                if model_id in display_names:
+                    merged_names.update(display_names[model_id])
+                display_name = merged_names.get("full_name", model_id)
+                if not base_name:
+                    base_name = merged_names.get("name", model_id.split("/")[-1].split("-")[0])
 
             if not display_name:
                 display_name = model_id
@@ -63,14 +68,24 @@ def resolve_models(config: dict) -> list[ModelSpec]:
                 short = model_id.split("/")[-1]
                 base_name = short.split("-")[0].capitalize()
 
+            # Resolve supports_thinking and max_tokens: model_cfg > merged_names > defaults
+            supports_thinking = model_cfg.get(
+                "supports_thinking",
+                merged_names.get("supports_thinking", False),
+            )
+            max_tokens = model_cfg.get(
+                "max_tokens",
+                merged_names.get("max_tokens", 8000),
+            )
+
             models.append(
                 ModelSpec(
                     model_id=model_id,
                     provider=provider_name,
                     display_name=display_name,
                     base_name=base_name,
-                    supports_thinking=model_cfg.get("supports_thinking", False),
-                    max_tokens=model_cfg.get("max_tokens", 4096),
+                    supports_thinking=supports_thinking,
+                    max_tokens=max_tokens,
                 )
             )
     return models

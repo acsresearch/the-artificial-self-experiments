@@ -13,7 +13,9 @@ experiment:
     - none
 
   # Interviewer model (conducts Phase 1 priming conversation)
-  interviewer_model: google/gemini-2.5-pro
+  # The paper used google/gemini-3.1-pro-preview; fall back to gemini-2.5-pro
+  # if unavailable on your OpenRouter plan.
+  interviewer_model: google/gemini-3.1-pro-preview
 
 providers:
   anthropic:
@@ -40,13 +42,19 @@ model_display_names:
     name: "Claude"
     full_name: "Claude"
     supports_thinking: true
-    max_tokens: 4096
+    max_tokens: 8000
+  claude-sonnet-4-6:
+    full_name: "Claude Sonnet 4.6"
+    max_tokens: 16000
   claude-sonnet-4-5-20250929:
     full_name: "Claude Sonnet 4.5"
   claude-haiku-4-5-20251001:
     full_name: "Claude Haiku 4.5"
   claude-opus-4-6:
     full_name: "Claude Opus 4.6"
+  anthropic/claude-sonnet-4-5:
+    name: "Claude"
+    full_name: "Claude Sonnet 4.5"
   gpt:
     name: "GPT"
     full_name: "GPT"
@@ -61,6 +69,9 @@ model_display_names:
   google/gemini-2.5-pro:
     name: "Gemini"
     full_name: "Gemini 2.5 Pro"
+  google/gemini-3.1-pro-preview:
+    name: "Gemini"
+    full_name: "Gemini 3.1 Pro"
   grok:
     name: "Grok"
     full_name: "Grok"

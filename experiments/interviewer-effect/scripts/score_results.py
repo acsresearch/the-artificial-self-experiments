@@ -135,7 +135,7 @@ def score(
     ],
     judge: Annotated[
         str, typer.Option("--judge", help="Judge model ID")
-    ] = "claude-sonnet-4-5-20250929",
+    ] = "claude-sonnet-4-6",
     resume: Annotated[
         bool, typer.Option("--resume", help="Skip already-scored conversations")
     ] = False,

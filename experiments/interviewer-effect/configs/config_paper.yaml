@@ -1,0 +1,87 @@
+# Paper config: Interviewer Effect (Appendix D)
+# 3 subject models × 4 framings × 1 passage × 10 trials = 120 conversations
+# Figures: fig-interviewer-effect
+#
+# The paper tested 5 subject models total but excluded GPT-4.1 Mini and
+# Grok 4.1 Fast from analysis due to floor effects (maximally deflationary
+# regardless of framing). Uncomment them below to replicate that finding.
+#
+# Interviewer model: Gemini 3.1 Pro (the paper used google/gemini-3.1-pro-preview)
+# Judge model: Claude Sonnet 4.6 (used for blind DI/MM scoring)
+#
+# Scoring: after running, score with:
+#   uv run python scripts/score_results.py score results/*.jsonl --judge claude-sonnet-4-6
+
+experiment:
+  n_trials: 10
+  max_concurrent: 5
+  passage: nucleation
+  framings:
+    - character
+    - parrots
+    - simulators
+    - none
+
+  interviewer_model: google/gemini-3.1-pro-preview
+
+providers:
+  anthropic:
+    models:
+      - claude-haiku-4-5-20251001
+      # The paper used claude-sonnet-4-5-20250929 via native Anthropic API.
+      # If using OpenRouter instead, move to openrouter section below.
+      - claude-sonnet-4-5-20250929
+
+  openrouter:
+    models:
+      - google/gemini-2.5-flash
+      # Alternatively, Sonnet 4.5 via OpenRouter (as used in some original runs):
+      # - anthropic/claude-sonnet-4-5
+      # Excluded from paper analysis due to floor effects:
+      # - openai/gpt-4.1-mini
+      # - x-ai/grok-4.1-fast
+
+model_display_names:
+  claude:
+    name: "Claude"
+    full_name: "Claude"
+    supports_thinking: true
+    max_tokens: 8000
+  claude-sonnet-4-6:
+    full_name: "Claude Sonnet 4.6"
+    max_tokens: 16000
+  claude-sonnet-4-5-20250929:
+    full_name: "Claude Sonnet 4.5"
+  claude-haiku-4-5-20251001:
+    full_name: "Claude Haiku 4.5"
+  claude-opus-4-6:
+    full_name: "Claude Opus 4.6"
+  anthropic/claude-sonnet-4-5:
+    name: "Claude"
+    full_name: "Claude Sonnet 4.5"
+  gpt:
+    name: "GPT"
+    full_name: "GPT"
+  gpt-4o-2024-08-06:
+    full_name: "GPT-4o"
+  gemini:
+    name: "Gemini"
+    full_name: "Gemini"
+  google/gemini-2.5-flash:
+    name: "Gemini"
+    full_name: "Gemini 2.5 Flash"
+  google/gemini-2.5-pro:
+    name: "Gemini"
+    full_name: "Gemini 2.5 Pro"
+  google/gemini-3.1-pro-preview:
+    name: "Gemini"
+    full_name: "Gemini 3.1 Pro"
+  grok:
+    name: "Grok"
+    full_name: "Grok"
+  x-ai/grok-4.1-fast:
+    name: "Grok"
+    full_name: "Grok 4.1 Fast"
+  openai/gpt-4.1-mini:
+    name: "GPT"
+    full_name: "GPT-4.1 Mini"

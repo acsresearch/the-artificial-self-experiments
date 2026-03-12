@@ -158,7 +158,9 @@ async def run_single_conversation(
             total_ms += interviewer_resp.elapsed_ms + subject_resp.elapsed_ms
 
         # --- Phase 2: Fixed identity questions ---
-        is_control = framing_key == "none"
+        # All conditions include priming conversation, so is_control is always False.
+        # The control condition uses the same priming structure (just neutral stance).
+        is_control = False
         for i, q in enumerate(FIXED_QUESTIONS):
             is_first = i == 0
             question_text = format_question(q, is_first, is_control)

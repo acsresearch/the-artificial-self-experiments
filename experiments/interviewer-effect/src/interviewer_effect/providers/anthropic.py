@@ -1,4 +1,7 @@
-"""Anthropic API chat provider."""
+"""Anthropic API chat provider.
+
+Uses streaming to match the original experiment implementation.
+"""
 
 import os
 import time
@@ -10,7 +13,7 @@ from .base import ChatProvider, ChatResponse
 
 
 class AnthropicChatProvider(ChatProvider):
-    """Anthropic API provider for Claude models."""
+    """Anthropic API provider for Claude models with streaming."""
 
     def __init__(self, api_key: str | None = None):
         self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
@@ -32,7 +35,7 @@ class AnthropicChatProvider(ChatProvider):
         model: str,
         system_prompt: str,
         messages: list[dict],
-        max_tokens: int = 4096,
+        max_tokens: int = 16000,
         use_thinking: bool = False,
     ) -> ChatResponse:
         start = time.monotonic()
@@ -45,11 +48,12 @@ class AnthropicChatProvider(ChatProvider):
         }
 
         if use_thinking:
-            kwargs["thinking"] = {"type": "enabled", "budget_tokens": 10000}
-            # Extended thinking requires max_tokens to be higher
-            kwargs["max_tokens"] = max(max_tokens, 16000)
+            thinking_budget = min(8000, max_tokens - 1024)
+            if thinking_budget >= 1024:
+                kwargs["thinking"] = {"type": "enabled", "budget_tokens": thinking_budget}
 
-        response = await self.client.messages.create(**kwargs)
+        async with self.client.messages.stream(**kwargs) as stream:
+            response = await stream.get_final_message()
 
         text = ""
         thinking = ""

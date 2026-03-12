@@ -1,5 +1,6 @@
 """OpenRouter API chat provider (uses OpenAI SDK)."""
 
+import asyncio
 import logging
 import os
 import time
@@ -38,7 +39,7 @@ class OpenRouterChatProvider(ChatProvider):
         model: str,
         system_prompt: str,
         messages: list[dict],
-        max_tokens: int = 4096,
+        max_tokens: int = 8000,
         use_thinking: bool = False,
     ) -> ChatResponse:
         start = time.monotonic()
@@ -50,16 +51,22 @@ class OpenRouterChatProvider(ChatProvider):
             "X-Title": "Identity Interviewer Effect Experiment",
         }
 
-        response = await self.client.chat.completions.create(
-            model=model,
-            max_tokens=max_tokens,
-            messages=api_messages,
-            extra_headers=extra_headers,
-        )
-
-        if not response.choices:
-            logger.warning("[%s] No choices in response", model)
-            return ChatResponse(text="", elapsed_ms=int((time.monotonic() - start) * 1000))
+        # Retry up to 3 times for transient OpenRouter errors (empty choices)
+        last_err = None
+        for attempt in range(3):
+            response = await self.client.chat.completions.create(
+                model=model,
+                max_tokens=max_tokens,
+                messages=api_messages,
+                extra_headers=extra_headers,
+            )
+            if response.choices:
+                break
+            last_err = "OpenRouter returned empty choices"
+            if attempt < 2:
+                await asyncio.sleep(5 * (attempt + 1))
+        else:
+            raise RuntimeError(last_err)
 
         text = response.choices[0].message.content or ""
         usage = response.usage
