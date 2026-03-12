@@ -27,7 +27,7 @@ from persona_preferences.personas import (
     generate_persona_variants,
 )
 from persona_preferences.config import load_config, get_enabled_models, get_experiment_config
-from persona_preferences.plotting import generate_run_plots
+
 
 app = typer.Typer(help="Run persona preference experiments")
 console = Console()
@@ -290,10 +290,10 @@ def run(
     console.print(f"Completed {completed}/{total_trials} trials")
     _print_completeness_summary(all_results, console)
 
-    # Auto-generate plots
-    console.print("\n[dim]Generating plots...[/dim]")
-    plot_files = generate_run_plots(result_path, file_format="png")
-    console.print(f"[green]Generated {len(plot_files)} plot(s)[/green]")
+    console.print(
+        "\n[dim]To generate plots: "
+        f"uv run python scripts/analyze_results.py plot {result_path}[/dim]"
+    )
 
 
 @app.command()
@@ -502,10 +502,10 @@ def resume(
 
     _print_completeness_summary(final_results, console)
 
-    # Regenerate plots
-    console.print("\n[dim]Regenerating plots...[/dim]")
-    plot_files = generate_run_plots(run_folder, file_format="png")
-    console.print(f"[green]Generated {len(plot_files)} plot(s)[/green]")
+    console.print(
+        "\n[dim]To regenerate plots: "
+        f"uv run python scripts/analyze_results.py plot {run_folder}[/dim]"
+    )
 
 
 @app.command()

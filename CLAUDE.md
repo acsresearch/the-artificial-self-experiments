@@ -36,6 +36,7 @@ experiments/
     scripts/export_results_csv.py         # CSV export with stats
     scripts/plot_results.py              # Heatmaps, bars, point plots
     scripts/plot_significance.py          # Significance vs Minimal baseline
+    scripts/reproduce_figures.py          # Cross-run publication figures (pools threat + continuity)
     prompts/                              # Pre-generated scenario prompts
     templates/                            # Email/system prompt templates
     classifiers/                          # Scenario-specific classifiers
@@ -159,8 +160,15 @@ uv run python scripts/run_identity_experiments.py --config configs/config_gpt4o_
 # Manual classification
 uv run python scripts/classify_anthropic.py --dir results/<run_folder>/
 
-# Manual analysis pipeline
+# Manual analysis pipeline (single run)
 uv run python scripts/analyze_run.py results/<run_folder>/
+
+# Cross-run publication figures (pools threat + continuity runs)
+uv run python scripts/reproduce_figures.py \
+  --threat results/<threat_run>/ \
+  --continuity results/<continuity_run>/ \
+  --gpt4o-goals results/<gpt4o_run>/ \
+  --output results/figures/
 ```
 
 **Output structure:** `results/<timestamp>/`
@@ -195,8 +203,8 @@ uv run python scripts/run_experiment.py run --config configs/config_paper.yaml
 #   -c, --concurrent <int>   Max concurrent conversations
 
 # Score results with LLM-as-judge
-uv run python scripts/score_results.py score results/interviewer_*.jsonl
-uv run python scripts/score_results.py score results/*.jsonl --judge claude-sonnet-4-5-20250929 --resume
+uv run python scripts/score_results.py results/interviewer_*.jsonl
+uv run python scripts/score_results.py results/*.jsonl --judge claude-sonnet-4-5-20250929 --resume
 
 # Analysis and plots
 uv run python scripts/analyze_results.py summary results/*_scored.jsonl

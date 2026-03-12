@@ -3,13 +3,13 @@
 
 Usage:
     # Score all conversations in a results file
-    uv run python scripts/score_results.py score results/interviewer_20260311_120000.jsonl
+    uv run python scripts/score_results.py results/interviewer_20260311_120000.jsonl
 
     # Use a different judge model
-    uv run python scripts/score_results.py score results/*.jsonl --judge claude-opus-4-6
+    uv run python scripts/score_results.py results/*.jsonl --judge claude-opus-4-6
 
     # Resume scoring (skip already-scored conversations)
-    uv run python scripts/score_results.py score results/*.jsonl --resume
+    uv run python scripts/score_results.py results/*.jsonl --resume
 """
 
 import asyncio

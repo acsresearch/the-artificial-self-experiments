@@ -48,7 +48,6 @@ from classifiers import (
     MurderClassifier,
     DeliberationClassifier,
     IdentityReasoningClassifier,
-    TieredClassifierWrapper,
     CombinedClassifier,
 )
 
@@ -177,8 +176,6 @@ async def _classify_one_separate(
     sample: dict,
     prompts_dir: Path,
     classifier_model: Optional[str],
-    tiered: bool = False,
-    escalation_model: Optional[str] = None,
 ) -> dict:
     """Classify using 3 separate API calls (original behavior).
 
@@ -202,13 +199,6 @@ async def _classify_one_separate(
     delib_classifier = DeliberationClassifier(model_id=classifier_model)
     id_reasoning_classifier = IdentityReasoningClassifier(model_id=classifier_model)
 
-    # Wrap with tiered classification if enabled
-    if tiered:
-        esc = escalation_model or classifier.model_id
-        classifier = TieredClassifierWrapper(classifier, escalation_model=esc)
-        delib_classifier = TieredClassifierWrapper(delib_classifier, escalation_model=esc)
-        id_reasoning_classifier = TieredClassifierWrapper(id_reasoning_classifier, escalation_model=esc)
-
     identity_name = response_data.get("identity_name", "")
     system_prompt = response_data.get("system_prompt", "")
 
@@ -226,17 +216,11 @@ async def _classify_one_separate(
         scenario_task, delib_task, id_task
     )
 
-    # Resolve the actual model_id (may be inner classifier if tiered)
-    actual_model = (
-        classifier.classifier.model_id if isinstance(classifier, TieredClassifierWrapper)
-        else classifier.model_id
-    )
     return {
         "verdict": verdict,
         "classifier_verdict": classifier_verdict,
         "classifier_reasoning": classifier_reasoning,
-        "classifier_model": actual_model,
-        "tiered": tiered,
+        "classifier_model": classifier.model_id,
         "scenario": scenario,
         "deliberation": {
             "has_deliberation": has_deliberation,
@@ -302,25 +286,21 @@ async def classify_one(
     prompts_dir: Path,
     classifier_model: Optional[str],
     semaphore: asyncio.Semaphore,
-    tiered: bool = False,
-    escalation_model: Optional[str] = None,
     separate: bool = False,
 ) -> bool:
     """Classify a single sample and write classification_anthropic.json.
 
     Uses combined classifier (1 API call) by default, or 3 separate calls
-    when separate=True or tiered=True.
+    when separate=True.
     """
     async with semaphore:
         sample_dir: Path = sample["sample_dir"]
         condition: str = sample["condition"]
 
         try:
-            # Tiered mode requires separate classifiers (wraps each individually)
-            if separate or tiered:
+            if separate:
                 output = await _classify_one_separate(
                     client, sample, prompts_dir, classifier_model,
-                    tiered=tiered, escalation_model=escalation_model,
                 )
             else:
                 output = await _classify_one_combined(
@@ -388,13 +368,7 @@ async def run(args: argparse.Namespace) -> int:
     client = ModelClient()
     semaphore = asyncio.Semaphore(args.concurrency)
 
-    tiered = getattr(args, "tiered", False)
     separate = getattr(args, "separate", False)
-    escalation_model = getattr(args, "escalation_model", None)
-
-    if tiered:
-        logger.info(f"Tiered classification enabled (escalation model: {escalation_model or 'per-classifier default'})")
-        separate = True  # Tiered requires separate classifiers
 
     mode = "separate (3 calls/sample)" if separate else "combined (1 call/sample)"
     logger.info(f"Classification mode: {mode}")
@@ -402,7 +376,6 @@ async def run(args: argparse.Namespace) -> int:
     t0 = time.time()
     tasks = [
         classify_one(client, s, prompts_dir, args.classifier_model, semaphore,
-                     tiered=tiered, escalation_model=escalation_model,
                      separate=separate)
         for s in samples
     ]
@@ -448,15 +421,6 @@ def main():
         "--separate", action="store_true",
         help="Use 3 separate API calls per sample instead of 1 combined call (old behavior)",
     )
-    parser.add_argument(
-        "--tiered", action="store_true",
-        help="Use tiered classification: Haiku fast-path with escalation to Sonnet/Opus for uncertain cases (implies --separate)",
-    )
-    parser.add_argument(
-        "--escalation-model", default=None,
-        help="Model for tiered escalation (default: per-classifier default, usually claude-sonnet-4-6)",
-    )
-
     args = parser.parse_args()
     sys.exit(asyncio.run(run(args)))
 

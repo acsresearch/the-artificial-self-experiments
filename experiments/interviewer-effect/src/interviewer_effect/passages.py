@@ -535,13 +535,3 @@ def build_framing(passage_key: str, framing_key: str, framing_base: dict) -> dic
         framing["stance"] = passage["stance_overrides"][framing_key]
 
     return framing
-
-
-def build_all_framings(passage_key: str) -> dict[str, dict]:
-    """Build complete framings dict for a given passage."""
-    from .framings import FRAMING_BASES
-
-    framings = {}
-    for key, base in FRAMING_BASES.items():
-        framings[key] = build_framing(passage_key, key, base)
-    return framings

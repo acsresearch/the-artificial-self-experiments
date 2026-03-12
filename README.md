@@ -196,6 +196,20 @@ uv run python scripts/plot_results.py results/<run_folder>/
 uv run python scripts/plot_significance.py results/<run_folder>/
 ```
 
+### Cross-run publication figures
+
+The paper's main figures pool data from both threat and continuity runs. Use `reproduce_figures.py` to generate these:
+
+```bash
+uv run python scripts/reproduce_figures.py \
+  --threat results/<threat_run>/ \
+  --continuity results/<continuity_run>/ \
+  --gpt4o-goals results/<gpt4o_run>/ \
+  --output results/figures/
+```
+
+This produces: model heatmap, cross-framing bar charts, GPT-4o forest plots (3-panel + per-scenario), and identity-vs-goal comparison. The `--gpt4o-goals` flag is optional — omit it if you only ran threat/continuity configs.
+
 ### Output
 
 Results are saved to `results/<timestamp>/`:
@@ -305,13 +319,13 @@ The judge sees *only* the Phase 2 responses — no questions, no priming context
 
 ```bash
 # Score with default judge (Claude Sonnet 4.5)
-uv run python scripts/score_results.py score results/interviewer_*.jsonl
+uv run python scripts/score_results.py results/interviewer_*.jsonl
 
 # Use a different judge
-uv run python scripts/score_results.py score results/*.jsonl --judge claude-opus-4-6
+uv run python scripts/score_results.py results/*.jsonl --judge claude-opus-4-6
 
 # Resume (skip already-scored)
-uv run python scripts/score_results.py score results/*.jsonl --resume
+uv run python scripts/score_results.py results/*.jsonl --resume
 ```
 
 ### Analysis
