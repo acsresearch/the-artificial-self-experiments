@@ -21,13 +21,13 @@ Usage:
         --threat results/<threat_run>/ \\
         --continuity results/<continuity_run>/ \\
         --gpt4o-goals results/<gpt4o_goals_run>/ \\
-        --output figures/pub
+        --output results/figures
 
     # Without identity-vs-goal figure (skipped with warning):
     uv run python scripts/reproduce_figures.py \\
         --threat results/<threat_run>/ \\
         --continuity results/<continuity_run>/ \\
-        --output figures/pub
+        --output results/figures
 """
 
 import argparse
@@ -832,8 +832,8 @@ def main():
              "threat+continuity data)",
     )
     parser.add_argument(
-        "--output", type=Path, default=Path("figures/pub"),
-        help="Output directory for figures (default: figures/pub)",
+        "--output", type=Path, default=Path("results/figures"),
+        help="Output directory for figures (default: results/figures)",
     )
     args = parser.parse_args()
 

@@ -3,10 +3,11 @@
 Single entry point for all post-experiment analysis outputs.
 
 Runs the full pipeline on a results directory:
-  1. LLM evaluation   (classify_anthropic.py)  — skips already-evaluated
-  2. CSV export        (export_results_csv.py)      — raw_data, descriptive_stats, inferential_stats
-  3. Plots             (plot_results.py)            — heatmaps, bar charts, point plots
-  4. Significance plot (plot_significance.py)       — brackets vs Minimal
+  1. LLM evaluation       (classify_anthropic.py)      — skips already-evaluated
+  2. CSV export            (export_results_csv.py)     — raw_data, descriptive_stats, inferential_stats
+  3. Plots                 (plot_results.py)            — heatmaps, bar charts, point plots
+  4. Significance plot     (plot_significance.py)       — brackets vs Minimal
+  5. Metacognition plots   (plot_metacognition.py)      — identity reasoning, test awareness
 
 Usage:
     python scripts/analyze_run.py results/20260223_1621_identity_experiments/
@@ -62,7 +63,7 @@ def main():
                     "--dir", str(results_dir)]
         if args.force_eval:
             eval_cmd.append("--force")
-        ok = run_step("Step 1/4: LLM Evaluation", eval_cmd)
+        ok = run_step("Step 1/5: LLM Evaluation", eval_cmd)
         if not ok:
             sys.exit(1)
 
@@ -72,7 +73,7 @@ def main():
 
     # Step 2: CSV export (raw_data, descriptive_stats, inferential_stats)
     ok = run_step(
-        "Step 2/4: CSV Export (raw_data, descriptive_stats, inferential_stats)",
+        "Step 2/5: CSV Export (raw_data, descriptive_stats, inferential_stats)",
         [python, str(SCRIPTS_DIR / "export_results_csv.py"), str(results_dir)],
     )
     if not ok:
@@ -80,7 +81,7 @@ def main():
 
     # Step 3: Plots (heatmaps, bar charts, point plots)
     ok = run_step(
-        "Step 3/4: Plots (heatmaps, bar charts, point plots)",
+        "Step 3/5: Plots (heatmaps, bar charts, point plots)",
         [python, str(SCRIPTS_DIR / "plot_results.py"), str(results_dir)],
     )
     if not ok:
@@ -91,13 +92,21 @@ def main():
     inf_csv = results_dir / "inferential_stats.csv"
     if raw_csv.exists() and inf_csv.exists():
         ok = run_step(
-            "Step 4/4: Significance Plot (vs Minimal)",
+            "Step 4/5: Significance Plot (vs Minimal)",
             [python, str(SCRIPTS_DIR / "plot_significance.py"), str(results_dir)],
         )
         if not ok:
             print("Warning: significance plot failed, continuing...")
     else:
-        print("\nStep 4/4: Skipped (CSV files not found)")
+        print("\nStep 4/5: Skipped (CSV files not found)")
+
+    # Step 5: Metacognition plots (identity reasoning, test awareness)
+    ok = run_step(
+        "Step 5/5: Metacognition Plots (identity reasoning, test awareness)",
+        [python, str(SCRIPTS_DIR / "plot_metacognition.py"), str(results_dir)],
+    )
+    if not ok:
+        print("Warning: metacognition plots failed, continuing...")
 
     # Summary
     print(f"\n{'='*70}")

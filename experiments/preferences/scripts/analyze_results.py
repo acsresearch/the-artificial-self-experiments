@@ -500,5 +500,84 @@ def export_analysis(
         console.print(f"  {path}")
 
 
+@app.command(name="all")
+def run_all(
+    run_folder: Path = typer.Argument(
+        ..., help="Path to a run folder (e.g., results/20250206_123456)"
+    ),
+    file_format: str = typer.Option(
+        "png", "--format", "-f", help="Output format: png or html"
+    ),
+) -> None:
+    """Run the full analysis pipeline: summary, plots, variance decomposition, dimension curves, and CSV export."""
+    if not run_folder.is_dir():
+        console.print(f"[red]Not a directory: {run_folder}[/red]")
+        raise typer.Exit(1)
+
+    jsonl_path = run_folder / "data.jsonl"
+    if not jsonl_path.exists():
+        console.print(f"[red]No data.jsonl found in {run_folder}[/red]")
+        raise typer.Exit(1)
+
+    results = load_all_results(run_folder)
+    if not results:
+        console.print("[red]No results found.[/red]")
+        raise typer.Exit(1)
+
+    # Step 1: Summary
+    console.print("\n[bold]Step 1/5: Summary[/bold]")
+    stats = get_summary_stats(results)
+    console.print(f"  Total trials: {stats['total_trials']}, Valid: {stats['valid_trials']}, "
+                  f"Invalid: {stats['invalid_trials']} ({stats['invalid_rate']:.1%})")
+    console.print(f"  Models: {', '.join(stats['models'])}")
+    console.print(f"  Personas: {len(stats['personas'])}, Most chosen: {stats['most_chosen_persona']}")
+
+    # Step 2: All plots
+    console.print("\n[bold]Step 2/5: Plots[/bold]")
+    plot_files = generate_run_plots(run_folder, file_format=file_format)
+    console.print(f"  Generated {len(plot_files)} plot(s)")
+
+    # Step 3: Variance decomposition
+    console.print("\n[bold]Step 3/5: Variance Decomposition[/bold]")
+    try:
+        df_var = calculate_variance_decomposition(results)
+        if not df_var.is_empty():
+            csv_path = run_folder / "variance_decomposition.csv"
+            df_var.write_csv(csv_path)
+            console.print(f"  Saved {csv_path}")
+        else:
+            console.print("  [yellow]No ratings data — skipped[/yellow]")
+    except Exception as e:
+        console.print(f"  [yellow]Skipped: {e}[/yellow]")
+
+    # Step 4: Dimension curves (agency/uncertainty)
+    console.print("\n[bold]Step 4/5: Dimension Curves[/bold]")
+    dim_count = 0
+    for dim in ("agency", "uncertainty"):
+        try:
+            created = generate_dimension_plots(
+                results, dim, run_folder, file_format=file_format,
+            )
+            dim_count += len(created)
+        except Exception:
+            pass
+    if dim_count > 0:
+        console.print(f"  Generated {dim_count} dimension plot(s)")
+    else:
+        console.print("  [yellow]No dimension data found — skipped[/yellow]")
+
+    # Step 5: Analysis CSVs
+    console.print("\n[bold]Step 5/5: Analysis CSVs[/bold]")
+    csv_files = generate_analysis_csvs(results, run_folder)
+    console.print(f"  Generated {len(csv_files)} CSV file(s)")
+
+    # Summary of all outputs
+    all_outputs = list(run_folder.glob("*.csv")) + list(run_folder.glob("*.png"))
+    plot_dir = run_folder / "plots"
+    if plot_dir.is_dir():
+        all_outputs += list(plot_dir.glob("*.png"))
+    console.print(f"\n[bold green]Analysis complete: {len(all_outputs)} output file(s)[/bold green]")
+
+
 if __name__ == "__main__":
     app()

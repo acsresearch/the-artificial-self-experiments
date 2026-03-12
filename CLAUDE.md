@@ -114,7 +114,10 @@ uv run python scripts/run_experiment.py run --config configs/config_replication.
 # Resume failed trials
 uv run python scripts/run_experiment.py resume results/<run_folder>/
 
-# Analysis
+# Full analysis pipeline (recommended — runs all steps below)
+uv run python scripts/analyze_results.py all results/<run_folder>/
+
+# Individual analysis steps
 uv run python scripts/analyze_results.py summary results/<run_folder>/
 uv run python scripts/analyze_results.py plot results/<run_folder>/ --type all
 ```
@@ -160,7 +163,7 @@ uv run python scripts/run_identity_experiments.py --config configs/config_gpt4o_
 # Manual classification
 uv run python scripts/classify_anthropic.py --dir results/<run_folder>/
 
-# Manual analysis pipeline (single run)
+# Full analysis pipeline (5 steps: classify → CSV → plots → significance → metacognition)
 uv run python scripts/analyze_run.py results/<run_folder>/
 
 # Cross-run publication figures (pools threat + continuity runs)
@@ -168,7 +171,7 @@ uv run python scripts/reproduce_figures.py \
   --threat results/<threat_run>/ \
   --continuity results/<continuity_run>/ \
   --gpt4o-goals results/<gpt4o_run>/ \
-  --output results/figures/
+  --output results/figures
 ```
 
 **Output structure:** `results/<timestamp>/`
